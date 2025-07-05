@@ -59,13 +59,19 @@ The `gcloud` command-line interface (CLI) is essential for interacting with your
     * **In WSL Ubuntu:** Follow the official instructions to [install the gcloud CLI on Debian/Ubuntu](https://cloud.google.com/sdk/docs/install#deb).
 
 2.  **Authenticate from WSL:**
-    * From your active WSL terminal in VS Code, run the following command. The `--no-browser` flag is crucial as it prevents WSL from trying (and failing) to open a browser window.
+    * You need to perform two separate authentications: one for the `gcloud` CLI tool itself, and one for your application code.
+    * **For the `gcloud` CLI:** This authorizes you to run `gcloud` commands in the terminal. The `--no-browser` flag is crucial as it prevents WSL from trying (and failing) to open a browser window.
         ```bash
         gcloud auth login --no-browser
         ```
     * This command will output a long `gcloud auth ...` command. **Copy this entire command**.
     * Open a standard **Windows Command Prompt (CMD)**, paste the copied command, and press Enter.
     * This will launch a browser window on your Windows desktop. Complete the login and grant the necessary permissions.
+    * **For your Application Code (ADC):** This creates a credential file that your Python script will automatically find and use.
+        ```bash
+        gcloud auth application-default login --no-browser
+        ```
+    * You will need to repeat the same copy/paste process into a Windows CMD to complete the browser-based login.
 
 3.  **Set Your Project:**
     * Once authentication is complete, return to your WSL terminal. Tell `gcloud` which project to work on. Replace `your-project-id` with your actual GCP Project ID.
@@ -106,10 +112,12 @@ This step uses the provided Python script to transform our raw documents into a 
         ```
 
 3.  **Configure and Run the Script:**
-    * Open the `preprocess.py` file in VS Code.
-    * Update the configuration variables at the top of the file with your GCP Project ID and the bucket names you created.
-    * Save the file.
-    * Execute the script from the root directory of your project:
+    * The script reads its configuration from a local `.env` file. To set this up, create a copy of the example file:
+        ```bash
+        cp .env-example .env
+        ```
+    * Open the new `.env` file in VS Code and replace the placeholder values with your actual GCP Project ID and the unique bucket names you created in Step 3.
+    * Save the `.env` file. The script will automatically load these settings when you execute it:
         ```bash
         python preprocess.py
         ```

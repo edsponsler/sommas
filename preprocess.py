@@ -1,14 +1,50 @@
 import os
 import json
 import tempfile
-from google.cloud import storage
+import hashlib
+import base64
 from langchain.text_splitter import RecursiveCharacterTextSplitter
+from google.cloud import storage, exceptions
 from langchain_community.document_loaders import PyPDFLoader, TextLoader
+from dotenv import load_dotenv
+
+"""
+This script is a data processing pipeline for preparing a corpus of documents
+for a Retrieval-Augmented Generation (RAG) system. It performs the following
+steps:
+
+1.  **Ingestion**: Reads raw documents (e.g., .pdf, .txt) from a specified
+    Google Cloud Storage (GCS) bucket.
+
+2.  **Processing**: For each document, it:
+    a.  Downloads the file to a secure, temporary location.
+    b.  Uses LangChain's document loaders to extract text content based on the
+        file type.
+    c.  Applies a document-aware chunking strategy using a
+        RecursiveCharacterTextSplitter. A special, fine-grained chunking is
+        applied to foundational texts, while a standard size is used for others.
+
+3.  **Structuring**: Each text chunk is formatted into a JSON object containing
+    the `content` and `source` metadata (the original filename). This metadata
+    is crucial for accurate citations in the final application.
+
+4.  **Output**: All processed chunks are aggregated into a single JSONL
+    (JSON Lines) file named `processed_corpus.jsonl`.
+
+5.  **Idempotent Upload**: The script calculates an MD5 hash of the newly
+    generated corpus and compares it to the hash of the existing file in the
+    processed GCS bucket. The upload is skipped if the content has not changed,
+    preventing unnecessary file operations and re-indexing by downstream
+    services like Vertex AI Search.
+"""
+
+# Load environment variables from .env file
+load_dotenv()
 
 # --- CONFIGURATION ---
-GCP_PROJECT_ID = "sommas-508843"
-RAW_DATA_BUCKET = "raw-data-sommas-508843"
-PROCESSED_DATA_BUCKET = "processed-data-sommas-508843"
+GCP_PROJECT_ID = os.getenv("GCP_PROJECT_ID")
+RAW_DATA_BUCKET = os.getenv("RAW_DATA_BUCKET")
+PROCESSED_DATA_BUCKET = os.getenv("PROCESSED_DATA_BUCKET")
 # ---------------------
 
 def process_document(blob, bucket_name):
@@ -53,6 +89,13 @@ def main():
     """
     Main function to orchestrate the preprocessing pipeline.
     """
+    # Validate that environment variables are set
+    if not all([GCP_PROJECT_ID, RAW_DATA_BUCKET, PROCESSED_DATA_BUCKET]):
+        print("Error: Missing required environment variables.")
+        print("Please create a .env file from the .env-example template")
+        print("and fill in your GCP_PROJECT_ID, RAW_DATA_BUCKET, and PROCESSED_DATA_BUCKET.")
+        return
+
     storage_client = storage.Client(project=GCP_PROJECT_ID)
     raw_bucket = storage_client.bucket(RAW_DATA_BUCKET)
     
@@ -79,13 +122,29 @@ def main():
     # Combine all JSON strings into a single JSONL file content
     jsonl_content = "\n".join(all_processed_chunks)
     
-    # Upload the processed JSONL file to the processed data bucket [cite: 73, 74]
+    # --- UPLOAD LOGIC ---
+    # Only upload if the content has actually changed to avoid unnecessary re-indexing.
     processed_bucket = storage_client.bucket(PROCESSED_DATA_BUCKET)
     output_blob_name = "processed_corpus.jsonl"
     output_blob = processed_bucket.blob(output_blob_name)
-    
-    print(f"\nUploading {len(all_processed_chunks)} chunks to gs://{PROCESSED_DATA_BUCKET}/{output_blob_name}")
-    output_blob.upload_from_string(jsonl_content, content_type="application/jsonl")
+
+    # Calculate MD5 hash of the new content to check for changes.
+    new_content_bytes = jsonl_content.encode('utf-8')
+    new_hash = base64.b64encode(hashlib.md5(new_content_bytes).digest()).decode('utf-8')
+
+    try:
+        # Get blob metadata without downloading the whole file.
+        output_blob.reload()
+        if output_blob.md5_hash == new_hash:
+            print("\n✅ No changes detected in corpus. Upload skipped.")
+            return
+    except exceptions.NotFound:
+        # The blob doesn't exist, so we must upload.
+        print("\nCorpus file not found. Creating new one...")
+        pass
+
+    print(f"\nUploading {len(all_processed_chunks)} chunks to gs://{PROCESSED_DATA_BUCKET}/{output_blob_name}...")
+    output_blob.upload_from_string(new_content_bytes, content_type="application/jsonl")
     print("✅ Preprocessing and upload complete.")
 
 
