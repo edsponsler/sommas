@@ -1,0 +1,179 @@
+# ASRR Phase 1 Tutorial: The Knowledge Foundation
+
+Welcome! This tutorial provides a comprehensive, step-by-step guide to implementing Phase 1 of the "Automated Systematic Retrieval and Review" (ASRR) project. 
+
+The goal of this phase is to build the ASRR's "mind" by creating a sophisticated, private search engine over a curated set of documents. By the end of this guide, you will have a functional retrieval backend on Google Cloud, meeting the requirements of Phase 2 of the ASRR project. For a copmlete overview fo the ASRR project see: [SOMMAS Wiki](https://github.com/edsponsler/sommas/wiki)
+
+## Prerequisites
+
+Before you begin, ensure you have the following setup:
+* **Visual Studio Code (VS Code)** installed.
+* **Windows Subsystem for Linux (WSL)** with **Ubuntu** installed and integrated into VS Code. This tutorial assumes all commands are run from the VS Code terminal connected to your WSL Ubuntu environment.
+* **A Google Cloud Platform (GCP) Account** with a project created and billing enabled.
+* **A GitHub Account**.
+
+---
+
+### Step 1: Set Up Your Local Project
+
+We will begin by creating a copy of the project template, which contains the necessary scripts and sample documents.
+
+1.  **Create Your Repository:**
+    * Navigate to the template repository in your browser: [https://github.com/edsponsler/sommas](https://github.com/edsponsler/sommas)
+    * Click the green **"Use this template"** button and select **"Create a new repository"**.
+    * Give your new repository a name (e.g., `my-asrr-project`) and click **"Create repository"**.
+
+2.  **Clone Your Repository:**
+    * Open VS Code with a terminal connected to WSL Ubuntu.
+    * First, ensure Git is installed in your Ubuntu environment:
+        ```bash
+        sudo apt update && sudo apt install git -y
+        ```
+    * Clone the repository you just created. Replace `<your-github-username>` and `<your-repo-name>` with your details.
+        ```bash
+        git clone [https://github.com/](https://github.com/)<your-github-username>/<your-repo-name>.git
+        ```
+    * Navigate into your new project directory:
+        ```bash
+        cd <your-repo-name>
+        ```
+        See this [Guide for setting up Authentication with GitHub](https://github.com/edsponsler/sommas/blob/main/AUTHENTICATING-WITH-GITHUB.md).
+
+3.  **Create a Python Virtual Environment:**
+    * It is a best practice to keep project dependencies isolated. We will create a virtual environment inside your project folder.
+        ```bash
+        python3 -m venv .venv
+        ```
+    * Activate the environment. You must do this every time you open a new terminal to work on this project.
+        ```bash
+        source .venv/bin/activate
+        ```
+    * Your terminal prompt should now be prefixed with `(.venv)`, indicating the environment is active.
+
+### Step 2: Configure the Google Cloud CLI
+
+The `gcloud` command-line interface (CLI) is essential for interacting with your GCP resources. For this WSL-based setup, a dual installation is required.
+
+1.  **Install the `gcloud` CLI:**
+    * **On Windows:** Follow the official instructions to [install the gcloud CLI on Windows](https://cloud.google.com/sdk/docs/install). This is required because it can seamlessly open a browser for authentication.
+    * **In WSL Ubuntu:** Follow the official instructions to [install the gcloud CLI on Debian/Ubuntu](https://cloud.google.com/sdk/docs/install#deb).
+
+2.  **Authenticate from WSL:**
+    * From your active WSL terminal in VS Code, run the following command. The `--no-browser` flag is crucial as it prevents WSL from trying (and failing) to open a browser window.
+        ```bash
+        gcloud auth login --no-browser
+        ```
+    * This command will output a long `gcloud auth ...` command. **Copy this entire command**.
+    * Open a standard **Windows Command Prompt (CMD)**, paste the copied command, and press Enter.
+    * This will launch a browser window on your Windows desktop. Complete the login and grant the necessary permissions.
+
+3.  **Set Your Project:**
+    * Once authentication is complete, return to your WSL terminal. Tell `gcloud` which project to work on. Replace `your-project-id` with your actual GCP Project ID.
+        ```bash
+        gcloud config set project your-project-id
+        ```
+
+### Step 3: Create Cloud Storage Buckets
+
+We need two secure locations in Google Cloud Storage to hold our documents: one for the original raw files and another for the processed, machine-readable data.
+
+1.  **Choose Unique Bucket Names:** Bucket names must be globally unique. A good practice is to append your unique project ID. For example: `asrr-raw-data-your-project-id`.
+
+2.  **Create the Buckets:** Run these commands from your WSL terminal, replacing the placeholder names with your unique names.
+    ```bash
+    # Create the raw bucket
+    gcloud storage buckets create gs://your-unique-raw-bucket-name --project=your-project-id --uniform-bucket-level-access
+
+    # Create the processed bucket
+    gcloud storage buckets create gs://your-unique-processed-bucket-name --project=your-project-id --uniform-bucket-level-access
+    ```
+
+### Step 4: Run the Preprocessing Pipeline
+
+This step uses the provided Python script to transform our raw documents into a structured format suitable for Vertex AI.
+
+1.  **Install Python Dependencies:**
+    * Ensure your virtual environment is active (`source .venv/bin/activate`).
+    * The template repository includes a `requirements.txt` file. Install the necessary libraries using `pip`:
+        ```bash
+        pip install -r requirements.txt
+        ```
+
+2.  **Upload Raw Corpus to Cloud Storage:**
+    * The `proto-corpus` folder in your repository contains the sample documents. Upload them to the `raw` bucket you created.
+        ```bash
+        gcloud storage cp proto-corpus/* gs://your-unique-raw-bucket-name/
+        ```
+
+3.  **Configure and Run the Script:**
+    * Open the `preprocess.py` file in VS Code.
+    * Update the configuration variables at the top of the file with your GCP Project ID and the bucket names you created.
+    * Save the file.
+    * Execute the script from the root directory of your project:
+        ```bash
+        python preprocess.py
+        ```
+    * The script will download the raw files, perform intelligent chunking, add source metadata, and upload a single `processed_corpus.jsonl` file to your processed bucket.
+
+4.  **Verify the Output:**
+    * In the Google Cloud Console, navigate to your processed bucket and confirm that the `processed_corpus.jsonl` file exists.
+
+### Step 5: Build the Search Engine with Vertex AI
+
+With our data prepared, we can now build the search engine itself. We will first create the backend datastore and then create an "App" to act as the frontend interface.
+
+1.  **Create the Datastore:**
+    * In the GCP Console, search or navigate to **AI Applications**.
+    * Select the **Data Stores** tab from the left menu.
+    * Click **+ CREATE NEW DATASTORE**.
+    * Configure it with the following settings:
+        * **Data Source:** Select **Cloud Storage**.
+        * **Import data from Cloud Storage:** Select **Structured data (JSONL)**.
+        * **Synchronization frequency** Select **One time**.
+        * **Select a folder or a file you want to import** Choose **Folder** tab. Click **Browse**. Select the **row** for your processed bucket (`gs://your-unique-processed-bucket-name`). **Do not click into the bucket.** The path should be to the bucket itself.
+        * **Select Continue**
+        * **Review schema and assign key properties** The defaults are fine. The Key property fields will be blank.
+        * **Select Continue**            
+        * **Configure your data store** For **Multi-region** Select **global (Global)**.
+        * **Datastore name:** Give it a name like `asrr-corpus-datastore`.
+    * Click **Create** and wait 15-30 minutes for the indexing process to complete.
+
+2.  **Create the App and Link the Datastore:**
+    * Select the **Apps** tab from the left menu.
+    * Click **+ CREATE APP** and select the **Custom search (general)** type.
+    * Ensure both **Enterprise edition features** and **Advanced LLM features** are checked.
+    * **App name:** Give it a name like `asrr-search-engine`.
+    * Fill in your company name.
+    * **Location of your app** For **Multi-region** Select **global (Global)**.
+    * **Select Continue**
+    * Check the box next to the `asrr-corpus-datastore` you just created and click **Create**.
+
+### Step 6: Test Your Search Engine
+
+This final step validates all our work. You will now be able to query your knowledge base.
+
+1.  **Navigate to the Preview Page:**
+    * From **AI Application** Select the **Apps** tab, you will now see your `asrr-search-engine` app. Click on it.
+    * Select the **Preview** tab.
+
+2.  **Run Test Queries:**
+    * Use the search bar to ask questions based on the documents you indexed:
+        * `What is a K-line?`
+        * `What is the concept of "mindless" agents?`
+        * `how is cloud run serverless?`
+    * Observe the results. Each result should show a relevant text snippet and the original source file, confirming your entire pipeline is working correctly.
+
+---
+
+## Expanding Your Corpus
+
+To make your ASRR more powerful, you can add more documents to its knowledge base.
+
+* **Find Documents:** You can find scientific and philosophical texts on sites like Google Scholar or public repositories like arXiv.org and PubMed Central. For technical documentation, you can save web pages from official sites as text files.
+* **Update Your Corpus:**
+    1.  Add the new files (PDF, TXT, etc.) to your local `proto-corpus` folder.
+    2.  Re-run the upload command: `gcloud storage cp proto-corpus/* gs://your-unique-raw-bucket-name/`
+    3.  Re-run the processing script: `python preprocess.py`
+    4.  Vertex AI Search will automatically detect the changes in the `processed_corpus.jsonl` file and re-index your datastore.
+
+You have now successfully completed Phase 1 of the ASRR Project. Congratulations!
