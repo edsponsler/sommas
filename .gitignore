@@ -1,0 +1,10 @@
+# Environments
+.env
+.venv
+
+# Byte-compiled / optimized / C extensions
+__pycache__/
+
+# IDE / Editor specific
+.idea/
+.vscode/
