@@ -96,13 +96,21 @@ We need two secure locations in Google Cloud Storage to hold our documents: one 
 
 ### Step 4: Run the Preprocessing Pipeline
 
-This step uses the provided Python script to transform our raw documents into a structured format suitable for Vertex AI.
+This step uses the provided Python script to transform our raw documents into a structured format suitable for Vertex AI. We will use `pip-tools` to ensure a consistent and reproducible Python environment.
 
 1.  **Install Python Dependencies:**
     * Ensure your virtual environment is active (`source .venv/bin/activate`).
-    * The template repository includes a `requirements.txt` file. Install the necessary libraries using `pip`:
+    * First, install the `pip-tools` package itself:
         ```bash
-        pip install -r requirements.txt
+        pip install pip-tools
+        ```
+    * Next, use `pip-compile` to generate a `requirements.txt` file from your `requirements.in`. This command resolves and pins all dependencies, creating a complete "lock file" for your environment.
+        ```bash
+        pip-compile requirements.in
+        ```
+    * Finally, use `pip-sync` to install all the packages listed in the newly generated `requirements.txt`. `pip-sync` is powerful because it ensures your environment exactly matches the requirements file, adding missing packages and removing any that don't belong.
+        ```bash
+        pip-sync
         ```
 
 2.  **Upload Raw Corpus to Cloud Storage:**
