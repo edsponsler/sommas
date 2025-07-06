@@ -12,6 +12,7 @@ Before you begin, ensure you have the following setup:
 * **A Google Cloud Platform (GCP) Account** with a project created and billing enabled.
 * **A GitHub Account**. See this [Guide for setting up Authentication with GitHub](https://github.com/edsponsler/sommas/blob/main/AUTHENTICATING-WITH-GITHUB.md).
 * (Optional) **Docker Desktop** installed with WSL. [Docker | WSL 2](https://docs.docker.com/desktop/features/wsl/#download)
+* (Optional) **Windows Terminal** installed. [Windows Terminal](https://learn.microsoft.com/en-us/windows/terminal/install)
 
 ---
 
