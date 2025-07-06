@@ -8,7 +8,7 @@ The goal of this phase is to build the ASRR's "mind" by creating a sophisticated
 
 Before you begin, ensure you have the following setup:
 * **Visual Studio Code (VS Code)** installed.
-* **Windows Subsystem for Linux (WSL)** with **Ubuntu** installed and integrated into VS Code. This tutorial assumes all commands are run from the VS Code terminal connected to your WSL Ubuntu environment.
+* **Windows Subsystem for Linux (WSL)** with **Ubuntu** installed and integrated into VS Code. This tutorial assumes all commands are run from the VS Code terminal connected to your WSL Ubuntu environment. [Install WSL](https://learn.microsoft.com/en-us/windows/wsl/install)
 * **A Google Cloud Platform (GCP) Account** with a project created and billing enabled.
 * **A GitHub Account**.
 
