@@ -21,3 +21,6 @@ streamlit
 
 # For loading environment variables from .env files
 python-dotenv
+
+# feature/phase3-approach-a
+langgraph
