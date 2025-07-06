@@ -242,7 +242,7 @@ With the configuration complete, you can now launch the web application.
 1.  **Launch the App:**
     *   In your WSL terminal (with the `.venv` virtual environment active), run the following command:
         ```bash
-        streamlit run app.py
+        python -m streamlit run app.py
         ```
 
 2.  **Interact with the Analyst:**
