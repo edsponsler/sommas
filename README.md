@@ -10,7 +10,7 @@ Before you begin, ensure you have the following setup:
 * **Windows Subsystem for Linux (WSL)** with **Ubuntu** installed and integrated into VS Code. This tutorial assumes all commands are run from the VS Code terminal connected to your WSL Ubuntu environment. [Install WSL](https://learn.microsoft.com/en-us/windows/wsl/install)
 * **Visual Studio Code (VS Code)** installed. [Visual Studio Code](https://code.visualstudio.com/download)
 * **A Google Cloud Platform (GCP) Account** with a project created and billing enabled. [Google Cloud](https://cloud.google.com/)
-* **A GitHub Account**. [GitHub Account](https://docs.github.com/en/get-started/start-your-journey/creating-an-account-on-github) | See this [Guide for setting up Authentication with GitHub](https://github.com/edsponsler/sommas/blob/main/AUTHENTICATING-WITH-GITHUB.md).
+* **A GitHub Account**. [GitHub Account](https://docs.github.com/en/get-started/start-your-journey/creating-an-account-on-github) | See this [Guide for setting up Authentication with GitHub](https://github.com/edsponsler/sommas/blob/main/docs/AUTHENTICATING-WITH-GITHUB.md).
 * (Optional) **Docker Desktop** installed with WSL. [Docker | WSL 2](https://docs.docker.com/desktop/features/wsl/#download)
 * (Optional) **Windows Terminal** installed. [Windows Terminal](https://learn.microsoft.com/en-us/windows/terminal/install)
 
