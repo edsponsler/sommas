@@ -193,3 +193,64 @@ To make your ASRR more powerful, you can add more documents to its knowledge bas
     4.  Vertex AI Search will automatically detect the changes in the `processed_corpus.jsonl` file and re-index your datastore.
 
 You have now successfully completed Phase 1 of the ASRR Project. Congratulations!
+
+---
+
+## ASRR Phase 2: The Conversational Analyst
+
+You've built a powerful, private search engine. In Phase 2, we will transform this search engine into a conversational partner. The objective is to create a true subject matter expert—an AI you can dialogue with to clarify concepts, ask follow-up questions, and receive answers that are synthesized and grounded *only* in your curated documents.
+
+We will use the Vertex AI Agent Builder framework to wrap our search engine in a conversational layer, and Streamlit to create a simple but effective web interface for interaction.
+
+### Step 7: Configure the Conversational App
+
+The `app.py` script, which runs the conversational agent, needs to know the ID of your search app and which Cloud Storage bucket to use for temporary files.
+
+1.  **Find Your Data Store ID:**
+    *   In the Google Cloud Console, navigate to **AI Applications**.
+    *   Select the **Apps** tab and click on the `asrr-search-engine` app you created in Phase 1.
+    *   In the app's menu, select the **Data** tab.
+    *   You will see your datastore listed. Copy its **ID** (it will be a long alphanumeric string).
+
+2.  **Update Your `.env` File:**
+    *   Open the `.env` file in your project.
+    *   You will see placeholders for `DATA_STORE_ID` and `STAGING_BUCKET`.
+    *   Paste the **Data Store ID** you just copied as the value for `DATA_STORE_ID`.
+    *   For `STAGING_BUCKET`, provide the full path to the staging bucket you created in Step 3 (e.g., `gs://your-unique-staging-bucket-name`).
+
+### Step 8: Understanding the Conversational Analyst (`app.py`)
+
+The `app.py` script orchestrates three main components to bring your conversational analyst to life:
+
+1.  **The Search Tool (`search_knowledge_base`):**
+    This Python function is the bridge to the search engine you built in Phase 1. It takes a user's query string as input. It initializes the `discoveryengine` client and points it to your specific data store using the `GCP_PROJECT_ID` and `DATA_STORE_ID` from your `.env` file. It sends the query and formats the raw search results into a clean string, including the content and the source file for each result. This formatted string is what the agent will "read" to find an answer.
+
+2.  **The Agent (`Agent`):**
+    The agent is the "brain" of the operation, created using `from google.adk.agents import Agent`. It's initialized with a specific generative model (like Gemini 2.5 Flash) and, most importantly, the `search_knowledge_base` function is passed into its `tools` list. This tells the agent: "When you need to answer a question, you have one tool you can use: this search function." The agent learns to automatically call this tool with a relevant search query whenever it needs information.
+
+3.  **The Web Interface (`Streamlit`):**
+    Streamlit is a framework that turns Python scripts into interactive web apps. `app.py` uses it to create the chat interface.
+    *   `st.title` sets the page title.
+    *   `st.session_state` is used to remember the chat history, so the conversation persists as you interact with the app.
+    *   The main loop waits for user input with `st.chat_input`. When you send a message, it's added to the history and displayed on the screen.
+    *   The agent's response is streamed back to the UI using `st.write_stream`, providing a real-time, "typing" effect for a better user experience.
+
+### Step 9: Launch and Interact with Your Analyst
+
+With the configuration complete, you can now launch the web application.
+
+1.  **Launch the App:**
+    *   In your WSL terminal (with the `.venv` virtual environment active), run the following command:
+        ```bash
+        streamlit run app.py
+        ```
+
+2.  **Interact with the Analyst:**
+    *   This command will start a local web server and should automatically open a new tab in your browser. You'll be greeted by the "ASRR: The Conversational Analyst" interface.
+    *   Try asking the same questions from the end of Phase 1. Notice the difference: instead of just a list of search results, the agent now provides a synthesized, conversational answer with citations pointing back to the source documents.
+
+---
+
+## Phase 2 Complete
+
+Congratulations! You have successfully completed Phase 2 of the ASRR project. You now have a functional conversational agent that can reason over your private document set, providing grounded, synthesized answers through an interactive web interface. This lays the critical foundation for Phase 3, where we will explore deploying, evaluating, and extending the agent's capabilities.
