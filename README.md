@@ -254,3 +254,69 @@ With the configuration complete, you can now launch the web application.
 ## Phase 2 Complete
 
 Congratulations! You have successfully completed Phase 2 of the ASRR project. You now have a functional conversational agent that can reason over your private document set, providing grounded, synthesized answers through an interactive web interface. This lays the critical foundation for Phase 3, where we will explore deploying, evaluating, and extending the agent's capabilities.
+
+---
+
+## ASRR Phase 3: The Implementation Strategist
+
+You've built a conversational analyst. In this final phase, we elevate the agent from a mere subject matter expert to a true **Implementation Strategist**. The objective is to empower the agent to deconstruct high-level, complex challenges and synthesize concrete, actionable implementation plans on Google Cloud.
+
+This new capability is powered by **LangGraph**, a library for building stateful, multi-actor applications with LLMs. We use it to define a more sophisticated, multi-step tool that can first perform research and then synthesize a detailed proposal based on its findings.
+
+### How It Works: The `propose_gcp_architecture` Tool
+
+The core of Phase 3 is the new `propose_gcp_architecture` tool, which is defined in the new `tools.py` file. This isn't just a single function call; it's a stateful graph that executes a sequence of steps.
+
+1.  **The State (`GraphState`)**: LangGraph works by passing a "state" object between nodes. Our state is a simple dictionary that tracks the progress of the task:
+    *   `user_request`: The original, complex query from the user.
+    *   `research_results`: The context gathered from our Vertex AI Search knowledge base.
+    *   `final_proposal`: The final, synthesized architectural plan.
+
+2.  **The Nodes (Functions)**: Each step in our workflow is a "node," which is just a Python function that modifies the state.
+    *   `survey_technologies_node`: This is the first step. It takes the `user_request` from the state, performs a comprehensive search against our knowledge base, and populates the `research_results` field in the state.
+    *   `synthesize_proposal_node`: This node runs after the research is complete. It takes both the original `user_request` and the new `research_results` from the state, feeds them into an expert-level prompt, and uses a generative model to write a detailed architectural proposal. The output is saved to the `final_proposal` field.
+
+3.  **The Graph (`workflow`)**: We define the order of operations by adding nodes and connecting them with "edges". Our graph is a straightforward sequence:
+    *   The entry point is `survey_technologies`.
+    *   After `survey_technologies` completes, the graph transitions to `synthesize_proposal`.
+    *   After `synthesize_proposal` completes, the graph finishes, and the final state (containing the proposal) is returned.
+
+### Integration into the Agent (`app.py`)
+
+The main `app.py` script is updated to integrate this powerful new tool:
+
+*   **Dual Tools**: The agent is now initialized with a list of *two* tools: the simple `search_knowledge_base` function and the new, advanced `propose_gcp_architecture` graph-based tool.
+*   **Intelligent Routing**: The system prompt has been enhanced to act as a router. It instructs the agent on how to choose the correct tool based on the user's query.
+
+This routing is the key to the agent's new strategic capability. For example:
+
+*   **Simple Question**: If you ask, `"Who is Minsky?"`, the agent, guided by the prompt, recognizes this as a factual lookup and calls the simple, efficient `search_knowledge_base` tool.
+*   **Complex Question**: If you ask, `"Propose a scalable architecture for deploying thousands of simple, specialized agents."`, the agent identifies this as a high-level design task. It then invokes the `propose_gcp_architecture` tool, triggering the entire LangGraph workflow of research followed by synthesis.
+
+### How to Run the Final Application
+
+The method for launching the app remains the same. The new, more powerful agent is now the default.
+
+1.  Ensure your virtual environment is active: `source .venv/bin/activate`
+2.  Launch the Streamlit application from the project root folder:
+    ```bash
+    python -m streamlit run app.py
+    ```
+
+---
+
+## Project Complete
+
+This concludes the three-phase implementation of the ASRR project. You have successfully built:
+
+*   **Phase 1**: A robust, private knowledge base using Google Cloud Storage and Vertex AI Search.
+*   **Phase 2**: A conversational analyst capable of answering questions grounded in that knowledge base.
+*   **Phase 3**: An implementation strategist that uses a multi-step LangGraph agent to research and formulate detailed architectural proposals.
+
+### Future Development
+
+This project serves as a powerful foundation. Here are some ideas for extending its capabilities:
+
+*   **Extend the Corpus**: The single most impactful improvement is to expand the knowledge base. You can add extensive documentation for other cloud providers like AWS and Azure for comparative analysis, ingest more advanced research papers on topics like Multi-Agent Reinforcement Learning (MARL), or add internal best-practice documents.
+*   **Advanced Tool Development**: You can build more specialized LangGraph tools as described in the project plan, such as a tool to explicitly compare and contrast frameworks (e.g., Mesa vs. Ray) or a tool to design the "K-line" analogue using a graph database.
+*   **Team Deployment**: Package the application using **Docker** and deploy it as a service on **Google Cloud Run**, making it accessible to your entire team.
