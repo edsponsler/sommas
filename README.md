@@ -1,6 +1,6 @@
 # ASRR Phase 1 Tutorial: The Knowledge Foundation
 
-Welcome! This tutorial provides a comprehensive, step-by-step guide to implementing Phase 1 of the "Automated Systematic Retrieval and Review" (ASRR) project. 
+Welcome! This tutorial provides a comprehensive, step-by-step guide to implementing the "Automated Systematic Retrieval and Review" (ASRR) project in three phases. 
 
 The goal of this phase is to build the ASRR's "mind" by creating a sophisticated, private search engine over a curated set of documents. By the end of this guide, you will have a functional retrieval backend on Google Cloud, meeting the requirements of Phase 2 of the ASRR project. For a copmlete overview fo the ASRR project see: [SOMMAS Wiki](https://github.com/edsponsler/sommas/wiki)
 
