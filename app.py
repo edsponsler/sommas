@@ -11,11 +11,11 @@ from vertexai.preview.reasoning_engines import AdkApp
 from google.cloud import discoveryengine_v1 as discoveryengine
 from google.api_core.client_options import ClientOptions
 
-# --- NEW: Import the advanced LangGraph tool ---
-from tools import propose_gcp_architecture
-
 # Load environment variables from .env file
 load_dotenv()
+
+# --- Import the advanced LangGraph tool ---
+from tools import propose_gcp_architecture
 
 # --- CONFIGURATION ---
 GCP_PROJECT_ID = os.getenv("GCP_PROJECT_ID")

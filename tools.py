@@ -20,9 +20,6 @@ GCP_LOCATION = os.getenv("GCP_LOCATION")
 MODEL_NAME = os.getenv("FAST_MODEL")
 DATA_STORE_ID = os.getenv("DATA_STORE_ID")
 
-# Initialize Vertex AI
-vertexai.init(project=GCP_PROJECT_ID, location=GCP_LOCATION)
-
 # --- 1. Define the State for the Graph ---
 
 class GraphState(TypedDict):
