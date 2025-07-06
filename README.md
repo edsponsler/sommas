@@ -10,7 +10,7 @@ Before you begin, ensure you have the following setup:
 * **Visual Studio Code (VS Code)** installed.
 * **Windows Subsystem for Linux (WSL)** with **Ubuntu** installed and integrated into VS Code. This tutorial assumes all commands are run from the VS Code terminal connected to your WSL Ubuntu environment. [Install WSL](https://learn.microsoft.com/en-us/windows/wsl/install)
 * **A Google Cloud Platform (GCP) Account** with a project created and billing enabled.
-* **A GitHub Account**.
+* **A GitHub Account**. See this [Guide for setting up Authentication with GitHub](https://github.com/edsponsler/sommas/blob/main/AUTHENTICATING-WITH-GITHUB.md).
 
 ---
 
@@ -37,7 +37,6 @@ We will begin by creating a copy of the project template, which contains the nec
         ```bash
         cd <your-repo-name>
         ```
-        See this [Guide for setting up Authentication with GitHub](https://github.com/edsponsler/sommas/blob/main/AUTHENTICATING-WITH-GITHUB.md).
 
 3.  **Create a Python Virtual Environment:**
     * It is a best practice to keep project dependencies isolated. We will create a virtual environment inside your project folder.
