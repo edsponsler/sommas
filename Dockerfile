@@ -5,7 +5,6 @@ FROM python:3.12-slim
 WORKDIR /app
 
 # Copy the consolidated requirements file into the container.
-# Copying this first leverages Docker's layer caching.
 COPY requirements.txt ./
 
 # Install the Python dependencies inside the container.
@@ -18,5 +17,5 @@ COPY . .
 EXPOSE 8501
 
 # Define the command that will be executed when the container starts.
-# We use the 'python -m streamlit' form for robustness.
-CMD ["python", "-m", "streamlit", "run", "app.py"]
+# This "shell" form correctly expands the $PORT environment variable.
+CMD python -m streamlit run app.py --server.port $PORT --server.address 0.0.0.0

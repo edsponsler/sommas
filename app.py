@@ -28,7 +28,7 @@ DATA_STORE_ID = os.getenv("DATA_STORE_ID")
 
 @st.cache_resource
 def load_agent():
-    """Loads the ASRR agent and its tools."""
+    """Loads the SOMMAS agent and its tools."""
     vertexai.init(
         project=GCP_PROJECT_ID,
         location=GCP_LOCATION,
@@ -67,9 +67,9 @@ def load_agent():
     # Creates the agent, now giving it BOTH tools.
     agent = Agent(
         model=MODEL,
-        # --- NEW: The agent now has two tools to choose from ---
+        # --- The agent now has two tools to choose from ---
         tools=[search_knowledge_base, propose_gcp_architecture],
-        name="asrr_agent"
+        name="sommas_agent"
     )
 
     app = AdkApp(agent=agent)
@@ -77,7 +77,15 @@ def load_agent():
 
 # --- Streamlit UI ---
 
-st.title("ASRR: The Implementation Strategist")
+st.title("SOMMAS: The Implementation Strategist")
+
+st.markdown("""
+The Society of Mind Multi-Agent System (SOMMAS)
+
+Try asking a simple factual question or a complex architectural query. For example:
+- **Simple search:** *Who is Marvin Minsky?*
+- **Advanced proposal:** *Propose a scalable architecture for deploying thousands of simple, specialized agents.*
+""")
 
 app = load_agent()
 
@@ -95,8 +103,8 @@ if prompt := st.chat_input("Ask a simple question or a complex architectural que
 
     with st.chat_message("assistant"):
         def response_generator():
-            # --- NEW: Updated system prompt to guide tool selection ---
-            system_prompt = """You are the ASRR, an expert research assistant and solutions architect.
+            # --- Updated system prompt to guide tool selection ---
+            system_prompt = """You are the SOMMAS Implementation Strategist, an expert research assistant and solutions architect.
             - For simple, factual questions about terms or concepts, use the `search_knowledge_base` tool.
             - For complex, high-level, or "how-to" questions that require a plan or architectural proposal, use the `propose_gcp_architecture` tool.
             - Provide clear, synthesized answers based ONLY on the context provided by the tools. Do not use any external knowledge. Cite sources when available."""
